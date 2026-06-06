@@ -1,0 +1,15 @@
+services:
+  annoying-ux-site:
+    build: .
+    container_name: annoying-ux-site
+    restart: unless-stopped
+    ports:
+      # Change the host port if 8080 is already in use on your server
+      - "8080:80"
+    # Uncomment and set your NPM network name if NPM runs in Docker on the same host:
+    # networks:
+    #   - npm_default
+
+# networks:
+#   npm_default:
+#     external: true

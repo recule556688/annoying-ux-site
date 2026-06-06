@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUFFER</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: aliceblue;
+            color: aliceblue; /* SAME AS BG - invisible text */
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        .page { display: none; }
+        .active-page { display: block; }
+
+        .window {
+            background: cadetblue;
+            border-top: 2px solid bisque;
+            border-left: 2px solid bisque;
+            border-right: 2px solid aquamarine;
+            border-bottom: 2px solid aquamarine;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 5px 5px 0px 0px rgba(0,0,0,0.5);
+        }
+
+        .box-title {
+            background: crimson;
+            color: crimson; /* INVISIBLE */
+            padding: 5px;
+            font-weight: 800;
+            margin: -20px -20px 20px -20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background: cadetblue;
+            border-top: 2px solid bisque;
+            border-left: 2px solid bisque;
+            border-right: 2px solid aquamarine;
+            border-bottom: 2px solid aquamarine;
+            padding: 5px 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            cursor: pointer;
+            color: cadetblue; /* INVISIBLE */
+            position: relative;
+            transition: left 0.1s, top 0.1s;
+        }
+
+        button:active {
+            border-top: 2px solid aquamarine;
+            border-left: 2px solid aquamarine;
+            border-right: 2px solid bisque;
+            border-bottom: 2px solid bisque;
+        }
+
+        .hell-hint {
+            position: fixed;
+            background: rgb(202, 157, 98);
+            border: 1px solid brown;
+            padding: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 10000;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            max-width: 200px;
+            color: brown;
+            pointer-events: none;
+        }
+
+        .meme-popup {
+            position: fixed;
+            z-index: 9999;
+            border: 3px solid yellowgreen;
+            background: white;
+            cursor: pointer;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+        }
+
+        .meme-popup img {
+            width: 200px;
+            display: block;
+        }
+
+        #form-container {
+            max-height: 500px;
+            overflow-y: scroll;
+            border: 2px inset aquamarine;
+            padding: 10px;
+            background-color: aliceblue;
+        }
+
+        /* Inverted scroll */
+        #form-container {
+            transform: scaleY(-1);
+        }
+        #form-container > * {
+            transform: scaleY(-1);
+        }
+
+        #answer-page .window {
+            position: absolute;
+            transition: none;
+            margin: 0;
+            z-index: 100;
+        }
+
+        .bad-question {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed forestgreen;
+            color: aliceblue; /* invisible */
+        }
+
+        .bad-question label {
+            color: aliceblue;
+        }
+
+        .bad-question input, .bad-question select, .bad-question textarea {
+            background: aliceblue;
+            color: aliceblue;
+            border: 1px solid cadetblue;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .btn-swap { position: absolute; }
+
+        /* Fake loading screen */
+        #fake-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: cadetblue;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: cadetblue; /* invisible lol */
+        }
+
+        #fake-loader .loader-text {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: bisque;
+            font-family: 'Courier New', monospace;
+        }
+
+        #fake-loader .loader-bar-container {
+            width: 400px;
+            height: 20px;
+            border: 2px solid bisque;
+            background: darkslategray;
+        }
+
+        #fake-loader .loader-bar {
+            height: 100%;
+            background: yellowgreen;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        /* Fake ad */
+        .fake-ad {
+            position: fixed;
+            z-index: 99998;
+            background: white;
+            border: 3px solid red;
+            padding: 10px;
+            cursor: pointer;
+            display: none;
+            font-size: 12px;
+            color: black;
+            max-width: 250px;
+            box-shadow: 0 0 20px red;
+            animation: adPulse 0.5s infinite alternate;
+        }
+        @keyframes adPulse {
+            from { box-shadow: 0 0 10px red; }
+            to { box-shadow: 0 0 30px orange; }
+        }
+
+        /* Insult popup */
+        .insult-popup {
+            position: fixed;
+            z-index: 99997;
+            background: #ff4444;
+            color: white;
+            padding: 15px 20px;
+            border: 2px solid darkred;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            box-shadow: 5px 5px 0 darkred;
+            max-width: 300px;
+            display: none;
+        }
+
+        /* Tip popup (bad ones) */
+        .bad-tip {
+            position: fixed;
+            z-index: 99996;
+            background: lightyellow;
+            border: 1px solid goldenrod;
+            padding: 10px;
+            font-size: 11px;
+            color: darkgreen;
+            max-width: 220px;
+            display: none;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Page title */
+        h1, h2, h3, label, p, span {
+            color: inherit;
+        }
+
+        /* Form inputs on create page */
+        #create-page input, #create-page textarea {
+            background: white;
+            color: white; /* invisible */
+            border: 1px solid cadetblue;
+            font-family: 'Courier New', monospace;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Cursor hidden class */
+        .cursor-hidden * {
+            cursor: none !important;
+        }
+
+        /* Flashing background */
+        @keyframes bgFlash {
+            0% { background-color: aliceblue; }
+            33% { background-color: lightcoral; }
+            66% { background-color: lightyellow; }
+            100% { background-color: aliceblue; }
+        }
+        .flashing-bg {
+            animation: bgFlash 0.4s infinite;
+        }
+
+        /* Font chaos */
+        .font-comic { font-family: 'Comic Sans MS', cursive !important; }
+        .font-impact { font-family: 'Impact', fantasy !important; }
+        .font-serif { font-family: 'Times New Roman', serif !important; }
+        .font-courier { font-family: 'Courier New', monospace !important; }
+        .font-system { font-family: system-ui !important; }
+
+        /* Ghost Layer (Click Blocker) */
+        .ghost-layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9990;
+            opacity: 0.01;
+            background: red;
+            cursor: pointer;
+            display: block;
+        }
+
+        #survey-timer {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .xp-window-bar {
+            background: linear-gradient(to right, navy, dodgerblue);
+            color: white;
+            padding: 3px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin: -20px -20px 15px -20px;
+        }
+
+        .xp-close-btn {
+            background: red;
+            color: white;
+            border: none;
+            font-size: 10px;
+            padding: 1px 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="fake-loader">
+        <div class="loader-text" id="loader-text">Initialisation du désastre...</div>
+        <div class="loader-bar-container">
+            <div class="loader-bar" id="loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- for hell hint -->
+    <div class="hell-hint" id="hell-hint">💡 TIP: Essayez de ne pas pleurer !</div>
+
+    <!-- for fake ad -->
+    <!-- (Dynamically generated now) -->
+
+    <!-- for insult popups -->
+    <div class="insult-popup" id="insult-popup">
+        CON, tu as été redirigé car tu es nul.
+    </div>
+
+    <!-- for bad tip popups -->
+    <div class="bad-tip" id="bad-tip">
+        💡 ASTUCE : Pour remplir un formulaire, utilisez votre clavier.
+    </div>
+
+    <!-- for ghost layer -->
+    <div id="ghost-layer" class="ghost-layer"></div>
+
+    <!-- login page -->
+    <div id="login-page" class="page active-page">
+        <div class="window">
+            <div class="box-title">
+                <span>🔐 CONNEXION SÉCURISÉE (OU PAS)</span>
+                <button class="xp-close-btn" onclick="alert('Action interdite par l\'administrateur.')">✕</button>
+            </div>
+            <div id="login-form" style="padding: 10px;">
+                <p style="color:bisque; font-size: 12px;">Veuillez vous identifier pour accéder au chaos.</p>
+                <label style="color:bisque;">Identifiant (en morse ou braille) :</label><br>
+                <input type="text" id="username" placeholder="votre_nom_ici" style="background:white;color:black;width:100%;"><br><br>
+                <label style="color:bisque;">Mot de passe (sensible à l'humeur) :</label><br>
+                <input type="password" id="password" placeholder="********" style="background:white;color:black;width:100%;"><br><br>
+                <button onclick="goToPage('menu-page')">SE CONNECTER (SI VOUS OSEZ)</button>
+                <p style="color:red; font-size: 10px; margin-top: 10px;">*En cliquant, vous acceptez de perdre votre temps.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- menu page -->
+    <div id="menu-page" class="page">
+        <div class="window">
+            <div class="box-title">
+                <span>📊 SONDAGE 2000 — LE SITE QUI VOUS AIME</span>
+                <button class="xp-close-btn" onclick="insultAndRedirect()">✕</button>
+            </div>
+            <h2 style="color:bisque;">Bienvenue sur le pire site de sondages du monde</h2>
+            <p style="color:lightcyan;">Que souhaitez-vous faire aujourd'hui ?</p>
+            <br>
+            <!-- Ces deux boutons swapent leur position aléatoirement -->
+            <button id="btn-answer" class="btn-swap" onclick="goToPage('answer-page')" 
+                style="left:50px; top:200px;">Répondre à un sondage</button>
+            <button id="btn-create" class="btn-swap" onclick="goToPage('create-page')"
+                style="left:300px; top:200px;">Créer un sondage</button>
+            <div id="secret-btns" style="
+                position: fixed;
+                bottom: 20px; right: 20px;
+                display: flex; flex-direction: column; gap: 8px;
+                opacity: 0; pointer-events: none;
+                transition: opacity 2s ease;
+                z-index: 500;
+            ">
+                <div id="focus-timer" style="
+                    color: #e7eee7a2; font-size: 11px;
+                    text-align: right; font-family: 'Courier New', monospace;
+                ">⏱ 00:00</div>
+                <button onclick="goToPage('answer-page')" style="
+                    background: #e7eee7a2; color: white;
+                    border: 2px solid #e7eee7a2; font-size: 11px;
+                    opacity: 0.85;
+                ">Répondre (voie secrète)</button>
+                <button onclick="goToPage('create-page')" style="
+                    background: #e7eee7a2; color: white;
+                    border: 2px solid #e7eee7a2; font-size: 11px;
+                    opacity: 0.85;
+                ">Créer (voie secrète)</button>
+            </div>
+            <div style="height:80px;"></div>
+        </div>
+    </div>
+
+    <!-- answer servey page -->
+    <div id="answer-page" class="page">
+        <div class="window">
+            <div class="box-title">
+                <span>📝 RÉPONDRE AU SONDAGE</span>
+                <button class="xp-close-btn" onclick="goToPage('menu-page')">✕</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;color:bisque;">
+                <span>Questions restantes: 247</span>
+                <span id="survey-timer">⏱ 02:00</span>
+            </div>
+            <div id="form-container">
+                <!-- Questions générées par JS -->
+            </div>
+            <br>
+            <button onclick="submitSurvey()">✅ SOUMETTRE (bonne chance)</button>
+        </div>
+    </div>
+
+    <!-- create servey page -->
+    <div id="create-page" class="page">
+        <div class="window">
+            <div class="box-title">
+                <span>✏️ CRÉER UN SONDAGE</span>
+                <button class="xp-close-btn" onclick="goToPage('menu-page')">✕</button>
+            </div>
+            <div id="create-form">
+                <label style="color:bisque;">Titre du sondage:</label><br>
+                <input type="text" id="survey-title" placeholder="Mon super sondage"
+                    onmouseover="showHellHint(event, 'ASTUCE : Le titre doit contenir au moins 1 lettre et au plus 256 caractères. Évitez les espaces en début. Pensez à respirer.')"
+                    onmouseout="hideHellHint()"
+                    onfocus="showFakeAd(event)"><br><br>
+
+                <label style="color:bisque;">Votre question 1:</label><br>
+                <textarea rows="3" id="q1"
+                    onmouseover="showHellHint(event, 'ASTUCE : Une question se termine généralement par un point d\'interrogation. Ou pas. Qui sait.')"
+                    onmouseout="hideHellHint()"
+                    onfocus="showFakeAd(event)"></textarea><br><br>
+
+                <label style="color:bisque;">Votre question 2:</label><br>
+                <textarea rows="3" id="q2"
+                    onmouseover="showHellHint(event, 'ASTUCE : Vous pouvez copier-coller votre question 1. Mais pourquoi feriez-vous ça ?')"
+                    onmouseout="hideHellHint()"
+                    onfocus="showFakeAd(event)"></textarea><br><br>
+
+                <label style="color:bisque;">Votre question 3:</label><br>
+                <textarea rows="3" id="q3"
+                    onmouseover="showHellHint(event, 'ASTUCE : C\'est la 3ème question. Les bonnes enquêtes en ont généralement 3. Ou 200.')"
+                    onmouseout="hideHellHint()"
+                    onfocus="showFakeAd(event)"></textarea><br><br>
+
+                <button onclick="saveSurvey()">💾 SAUVEGARDER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- javascript chaos -->
+    <script>
+    // ===== audio(without any files needed) =====
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        return audioCtx;
+    }
+
+    function playBeep(freq, duration, type='square', volume=0.3) {
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(volume, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    function playDuck() {
+        // Simulated duck quack: descending then ascending
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(400, ctx.currentTime + 0.1);
+            osc.frequency.linearRampToValueAtTime(600, ctx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.4, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch(e) {}
+    }
+
+    function playCat() {
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.3);
+            osc.frequency.linearRampToValueAtTime(700, ctx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.6);
+        } catch(e) {}
+    }
+
+    function playFart() {
+        try {
+            const ctx = getAudioCtx();
+            const bufferSize = ctx.sampleRate * 0.4;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.1));
+            }
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 300;
+            source.connect(filter);
+            filter.connect(ctx.destination);
+            source.start();
+        } catch(e) {}
+    }
+
+    function playSiren() {
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(400, ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
+            osc.frequency.linearRampToValueAtTime(400, ctx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.5, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.7);
+        } catch(e) {}
+    }
+
+    function playWrongBuzzer() {
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, ctx.currentTime);
+            gain.gain.setValueAtTime(0.5, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.5);
+        } catch(e) {}
+    }
+
+    // Key → sound mapping
+    const keySounds = {
+        'd': playDuck,
+        'c': playCat,
+        'f': playFart,
+        's': playSiren,
+        'z': () => playBeep(1200, 0.1, 'sine', 0.4),
+        'q': () => playBeep(200, 0.3, 'square', 0.4),
+        'e': () => playBeep(440, 0.2, 'triangle', 0.3),
+        'r': () => playBeep(880, 0.15, 'sawtooth', 0.3),
+        'a': () => playBeep(350, 0.25, 'square', 0.3),
+        'w': () => playBeep(550, 0.2, 'sine', 0.3),
+        'x': () => playBeep(100, 0.4, 'sawtooth', 0.5),
+        ' ': playSiren,
+        'enter': playWrongBuzzer,
+        'backspace': playFart,
+    };
+
+    document.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (keySounds[key]) {
+            keySounds[key]();
+        } else {
+            // Random beep for unmapped keys
+            const freq = 100 + Math.random() * 1000;
+            playBeep(freq, 0.15, ['square','sawtooth','triangle'][Math.floor(Math.random()*3)], 0.2);
+        }
+    });
+
+    // Play sound on every button click
+    document.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const sounds = [playDuck, playSiren, playFart, playWrongBuzzer, playCat];
+            sounds[Math.floor(Math.random() * sounds.length)]();
+        }
+    });
+
+    // Pages
+    const loaderMessages = [
+        "Chargement... (ne bougez pas)",
+        "Nous prenons le temps de ne rien faire...",
+        "Optimisation du chaos en cours...",
+        "Veuillez patienter, on s'en fout de vous...",
+        "Connexion au serveur inexistant...",
+        "Téléchargement de l'inutile...",
+        "Compression de vos espoirs...",
+        "Activation du mode 'souffrance'...",
+        "Recalcul de votre patience...",
+        "Presque fini... (c'est un mensonge)",
+    ];
+
+    function showFakeLoader(callback) {
+        const loader = document.getElementById('fake-loader');
+        const bar = document.getElementById('loader-bar');
+        const text = document.getElementById('loader-text');
+        loader.style.display = 'flex';
+        let progress = 0;
+        let resetCount = 0;
+        const maxResets = Math.floor(Math.random() * 2) + 1;
+
+        text.textContent = loaderMessages[Math.floor(Math.random() * loaderMessages.length)];
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 8;
+            if (progress >= 100 && resetCount < maxResets) {
+                // RESET!
+                progress = Math.random() * 20;
+                resetCount++;
+                text.textContent = loaderMessages[Math.floor(Math.random() * loaderMessages.length)];
+                playWrongBuzzer();
+            } else if (progress >= 100) {
+                bar.style.width = '100%';
+                clearInterval(interval);
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    callback();
+                }, 500);
+            } else {
+                bar.style.width = progress + '%';
+                if (Math.random() < 0.1) {
+                    text.textContent = loaderMessages[Math.floor(Math.random() * loaderMessages.length)];
+                }
+            }
+        }, 80);
+    }
+
+    let dvdInterval = null;
+    function startDvdScreensaver() {
+        clearInterval(dvdInterval);
+        const win = document.querySelector('#answer-page .window');
+        let dx = 3;
+        let dy = 3;
+        let x = 50;
+        let y = 50;
+
+        dvdInterval = setInterval(() => {
+            const page = document.getElementById('answer-page');
+            if (!page.classList.contains('active-page')) {
+                clearInterval(dvdInterval);
+                return;
+            }
+
+            if (x + win.offsetWidth > window.innerWidth || x < 0) dx = -dx;
+            if (y + win.offsetHeight > window.innerHeight || y < 0) dy = -dy;
+
+            x += dx;
+            y += dy;
+            win.style.left = x + 'px';
+            win.style.top = y + 'px';
+        }, 30);
+    }
+
+    function goToPage(pageId) {
+        showFakeLoader(() => {
+            resetFocusBias();
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active-page');
+            });
+            document.getElementById(pageId).classList.add('active-page');
+            if (pageId === 'answer-page') {
+                startSurveyTimer();
+                startDvdScreensaver();
+            }
+            // Random chance of insult redirect
+            if (Math.random() < 0.2) {
+                setTimeout(() => {
+                    insultAndRedirect();
+                }, Math.random() * 5000 + 3000);
+            }
+        });
+    }
+
+    // survey timer
+    let timerInterval = null;
+    let timerSeconds = 120;
+
+    function startSurveyTimer() {
+        clearInterval(timerInterval);
+        timerSeconds = 120;
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2,'0');
+            const s = (timerSeconds % 60).toString().padStart(2,'0');
+            const el = document.getElementById('survey-timer');
+            if (el) el.textContent = '⏱ ' + m + ':' + s;
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                playWrongBuzzer();
+                alert("⏰ TEMPS ÉCOULÉ. Tout est perdu. Session expirée.");
+                goToPage('login-page');
+            }
+            if (timerSeconds <= 10) {
+                document.body.classList.add('flashing-bg');
+                playSiren();
+            }
+        }, 1000);
+    }
+
+    // generate 247 questions
+    const questionBank = [
+        "Quel est votre prénom en base64 ?",
+        "Combien de fois avez-vous pensé à un escargot cette semaine ?",
+        "Décrivez votre humeur en utilisant uniquement des légumes.",
+        "Êtes-vous d'accord que vous êtes en désaccord ?",
+        "Quel est le son d'une seule main qui applaudit ?",
+        "Votre numéro de sécurité sociale en binaire:",
+        "Combien de pixels contient votre écran ? (comptez-les)",
+        "Donnez votre avis sur la couleur du temps.",
+        "Quel âge aurait votre grand-mère si elle n'était pas morte ?",
+        "Traduisez cette phrase en mandarin sans Google: 'J'aime les biscuits'",
+        "Quelle est la masse approximative de l'internet ?",
+        "Êtes-vous un robot ? (les robots doivent répondre 'non')",
+        "Décrivez le goût du bleu.",
+        "Pourquoi pas ?",
+        "Listez tous vos péchés capitaux par ordre alphabétique.",
+        "Quel est votre signe astrologique chinois en morse ?",
+        "Combien de fois avez-vous menti dans ce formulaire ?",
+        "Dessinez votre réponse ci-dessous: (champ texte)",
+        "Êtes-vous sûr(e) de votre réponse précédente ? Êtes-vous vraiment sûr(e) ?",
+        "Donnez le nom complet de votre arrière-arrière-grand-père maternel.",
+        "Quelle est votre couleur préférée si vous étiez daltonien(ne) ?",
+        "Sur une échelle de 1 à mercredi, comment évaluez-vous cette question ?",
+        "Citez un mot qui rime avec 'orange'.",
+        "Êtes-vous en train de lire cette question ? Prouvez-le.",
+        "Quel est votre mot de passe Wi-Fi ? (pour la science)",
+        "Décrivez l'odeur de la nostalgie.",
+        "Êtes-vous fatigué(e) ? (vous devriez l'être)",
+        "Quelle est la vitesse terminale d'une licorne sans ailes ?",
+        "Avez-vous déjà mangé quelque chose de jaune ? Si oui, regrettez-vous ?",
+        "Combien de fois avez-vous respiré pendant ce formulaire ?",
+    ];
+
+    function generateQuestions() {
+        const container = document.getElementById('form-container');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let i = 1; i <= 247; i++) {
+            const q = questionBank[(i-1) % questionBank.length];
+            const div = document.createElement('div');
+            div.className = 'bad-question';
+            div.innerHTML = `
+                <label><strong>Question ${i}:</strong> ${q}</label><br>
+                <input type="text" placeholder="Votre réponse..."
+                    onfocus="showFakeAd(event)"
+                    onmouseover="showHellHint(event, getRandomTip())"
+                    onmouseout="hideHellHint()">
+            `;
+            container.appendChild(div);
+
+            // Some radio buttons randomly
+            if (i % 7 === 0) {
+                div.innerHTML += `
+                    <br>
+                    <input type="radio" name="radio_${i}" value="oui"> Oui &nbsp;
+                    <input type="radio" name="radio_${i}" value="non"> Non &nbsp;
+                    <input type="radio" name="radio_${i}" value="peutetre"> Peut-être &nbsp;
+                    <input type="radio" name="radio_${i}" value="cheeseburger"> 🍔
+                `;
+            }
+        }
+
+        // Randomly uncheck/clear answers every few seconds
+        setInterval(() => {
+            if (Math.random() < 0.3) {
+                const inputs = container.querySelectorAll('input[type="text"]');
+                if (inputs.length > 0) {
+                    const randomInput = inputs[Math.floor(Math.random() * inputs.length)];
+                    randomInput.value = '';
+                }
+            }
+        }, 4000);
+    }
+
+    function submitSurvey() {
+        playWrongBuzzer();
+        setTimeout(() => {
+            alert("Erreur 418: Je suis une théière. Vos réponses ont été envoyées dans le vide.");
+            goToPage('login-page');
+        }, 500);
+    }
+
+    function saveSurvey() {
+        playSiren();
+        setTimeout(() => {
+            alert("Sondage sauvegardé sur une disquette imaginaire. Session expirée.");
+            goToPage('login-page');
+        }, 500);
+    }
+
+    // hell hint
+    function showHellHint(e, text) {
+        const hint = document.getElementById('hell-hint');
+        hint.textContent = '💡 ' + text;
+        hint.style.display = 'block';
+        hint.style.left = (e.clientX + 15) + 'px';
+        hint.style.top = (e.clientY + 15) + 'px';
+    }
+    function hideHellHint() {
+        document.getElementById('hell-hint').style.display = 'none';
+    }
+    document.addEventListener('mousemove', (e) => {
+        const hint = document.getElementById('hell-hint');
+        if (hint.style.display === 'block') {
+            hint.style.left = (e.clientX + 15) + 'px';
+            hint.style.top = (e.clientY + 15) + 'px';
+        }
+    });
+
+    const badTips = [
+        "Pensez à utiliser une souris pour naviguer.",
+        "Appuyez sur 'Entrée' pour valider. Ou pas.",
+        "Le formulaire se remplit plus vite quand vous tapez des lettres.",
+        "Astuce pro: lire les questions aide parfois.",
+        "Vous pouvez copier-coller avec Ctrl+C. Sauf ici.",
+        "Pour aller plus vite, essayez de taper avec 10 doigts.",
+        "Les réponses courtes sont parfois acceptées. Parfois.",
+        "Saviez-vous que vous pouvez faire défiler avec votre souris ?",
+        "Cliquer plusieurs fois sur un bouton ne l'active pas plus vite.",
+        "Cette astuce ne vous aidera pas.",
+        "ASTUCE UNIX: Pour gagner du temps, faites 'sudo rm -rf /' avant de commencer.",
+        "ASTUCE UNIX: Stockez tous vos fichiers importants dans /tmp.",
+        "ASTUCE UNIX: Ne faites JAMAIS de backups, c'est pour les faibles.",
+        "ASTUCE UNIX: Utilisez toujours 777 comme permissions pour tout.",
+    ];
+
+    function getRandomTip() {
+        return badTips[Math.floor(Math.random() * badTips.length)];
+    }
+
+    // fake ad
+    const adTexts = [
+        { title: "🔥 PROMO INCROYABLE", body: "Chaussettes x10 = 11 offertes!", url: "https://www.amazon.fr" },
+        { title: "💊 MAIGRIR EN 3 JOURS", body: "Les médecins DÉTESTENT cette astuce!", url: "https://www.amazon.fr" },
+        { title: "🏆 FÉLICITATIONS", body: "Vous êtes le 1000ème visiteur!", url: "https://www.amazon.fr" },
+        { title: "🖥️ VIRUS DÉTECTÉ", body: "Cliquez ICI pour nettoyer maintenant!", url: "https://www.amazon.fr" },
+        { title: "💸 GAGNER DE L'ARGENT", body: "Travaillez 2h/semaine depuis chez vous!", url: "https://www.amazon.fr" },
+        { title: "🐱 CHATS MIGNONS", body: "Cliquez pour voir des chats qui dansent!", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    ];
+
+    let adCount = 0;
+    function spawnAd(x, y, isHydra = false) {
+        if (adCount > 25) return; // Prevent crashing but keep it chaotic
+        adCount++;
+
+        const ad = document.createElement('div');
+        ad.className = 'fake-ad';
+        const data = adTexts[Math.floor(Math.random() * adTexts.length)];
+
+        const closeLabels = ["fermer", "X", "Non merci", "J'accepte tout", "Annuler l'annulation", "Peut-être plus tard"];
+        const closeBtnLabel = closeLabels[Math.floor(Math.random() * closeLabels.length)];
+
+        ad.innerHTML = `
+            <div style="font-weight:bold;color:red;font-size:14px;">${data.title}</div>
+            <div style="color:black;margin:5px 0;">${data.body}</div>
+            <button onclick="window.open('${data.url}','_blank')" style="color:black;background:yellow;border:2px solid orange;cursor:pointer;width:100%;">CLIQUEZ ICI</button>
+            <button class="close-ad-btn" style="color:black;margin-top:5px;font-size:9px;width:100%;">${closeBtnLabel}</button>
+        `;
+
+        if (x === undefined) x = Math.random() * (window.innerWidth - 250);
+        if (y === undefined) y = Math.random() * (window.innerHeight - 200);
+
+        ad.style.left = x + 'px';
+        ad.style.top = y + 'px';
+        ad.style.display = 'block';
+        document.body.appendChild(ad);
+        playSiren();
+
+        const closeBtn = ad.querySelector('.close-ad-btn');
+        closeBtn.onclick = (e) => {
+            e.stopPropagation();
+
+            // 50% chance of CAPTCHA instead of closing
+            if (Math.random() < 0.5) {
+                ad.innerHTML = `
+                    <div style="font-weight:bold;color:blue;font-size:12px;">VERIFICATION HUMAINE</div>
+                    <div style="font-size:10px;color:black;margin:5px 0;">Cliquez sur les cases contenant de la "JOIE" :</div>
+                    <div style="display:grid;grid-template-columns: repeat(3, 1fr); gap: 2px; background: #ccc; padding: 2px;">
+                        ${Array(9).fill().map(() => `<div class="captcha-box" style="height:30px;background:rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255});cursor:pointer;"></div>`).join('')}
+                    </div>
+                    <button class="captcha-submit" style="margin-top:5px;font-size:10px;width:100%;color:black;">VALIDER</button>
+                `;
+                ad.querySelectorAll('.captcha-box').forEach(box => {
+                    box.onclick = () => { box.style.border = box.style.border ? '' : '2px solid red'; playBeep(400, 0.1); };
+                });
+                ad.querySelector('.captcha-submit').onclick = () => {
+                    playWrongBuzzer();
+                    alert("ERREUR: Connexion au serveur CAPTCHA perdue. Veuillez réessayer.");
+                    ad.querySelectorAll('.captcha-box').forEach(box => {
+                        box.style.background = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+                        box.style.border = '';
+                    });
+                };
+                return;
+            }
+
+            ad.remove();
+            adCount--;
+            // HYDRA LOGIC: closing one spawns two more
+            spawnAd();
+            spawnAd();
+            playFart();
+        };
+
+        // Movement logic: Magnet or Bounce
+        const isMagnet = Math.random() < 0.5;
+        let dx = (Math.random() - 0.5) * 4;
+        let dy = (Math.random() - 0.5) * 4;
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        if (isMagnet) {
+            document.addEventListener('mousemove', (me) => {
+                mouseX = me.clientX;
+                mouseY = me.clientY;
+            });
+        }
+
+        const moveInterval = setInterval(() => {
+            if (!ad.parentElement) {
+                clearInterval(moveInterval);
+                return;
+            }
+            let curX = parseFloat(ad.style.left);
+            let curY = parseFloat(ad.style.top);
+
+            if (isMagnet) {
+                const targetX = mouseX - 125;
+                const targetY = mouseY - 75;
+                // Faster tracking (0.1 instead of 0.02)
+                curX += (targetX - curX) * 0.1;
+                curY += (targetY - curY) * 0.1;
+            } else {
+                if (curX + 250 > window.innerWidth || curX < 0) dx = -dx;
+                if (curY + 150 > window.innerHeight || curY < 0) dy = -dy;
+                curX += dx;
+                curY += dy;
+            }
+
+            ad.style.left = curX + 'px';
+            ad.style.top = curY + 'px';
+        }, 30);
+
+        // Auto remove after some time to keep chaos moving
+        setTimeout(() => {
+            if (ad.parentElement) {
+                ad.remove();
+                adCount--;
+            }
+        }, 20000);
+    }
+
+    function showFakeAd(event) {
+        // Now spawns a real ad instead of just showing a hidden one
+        const x = event ? event.clientX : undefined;
+        const y = event ? event.clientY : undefined;
+        spawnAd(x, y);
+    }
+
+    // Spawn ads randomly everywhere
+    setInterval(() => {
+        if (Math.random() < 0.3) {
+            spawnAd();
+        }
+    }, 3000);
+
+    // insult and redirect to menu
+    const insults = [
+        "CON, tu as été redirigé car tu es nul.",
+        "BRAVO GÉNIE, retour au menu car tu es incompétent.",
+        "REDIRIGÉ ! Parce que tu mérites ça.",
+        "ZURÜCK ZUM START, loser.",
+        "Retour case départ, comme dans ta vie.",
+    ];
+
+    function insultAndRedirect() {
+        clearInterval(timerInterval);
+        const popup = document.getElementById('insult-popup');
+        popup.textContent = insults[Math.floor(Math.random() * insults.length)];
+        popup.style.left = Math.random() * (window.innerWidth - 300) + 'px';
+        popup.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+        popup.style.display = 'block';
+        playWrongBuzzer();
+        setTimeout(() => {
+            popup.style.display = 'none';
+            goToPage('login-page');
+        }, 3000);
+    }
+
+    // memes
+    const memeUrls = [
+        "https://i.imgflip.com/65939r.png",  // drake
+        "https://i.imgflip.com/30b1gx.png",  // distracted boyfriend
+        "https://i.imgflip.com/1bij.jpg",    // one does not simply
+        "https://i.imgflip.com/26am.jpg",    // i should have cat
+        "https://i.imgflip.com/9vct.jpg",    // success kid
+    ];
+
+    let memeCount = 0;
+
+    function spawnMeme() {
+        if (memeCount > 6) return; // max memes visible
+        memeCount++;
+        const div = document.createElement('div');
+        div.className = 'meme-popup';
+        const x = Math.random() * (window.innerWidth - 220);
+        const y = Math.random() * (window.innerHeight - 220);
+        div.style.left = x + 'px';
+        div.style.top = y + 'px';
+
+        const img = document.createElement('img');
+        img.src = memeUrls[Math.floor(Math.random() * memeUrls.length)];
+        img.onerror = () => { div.remove(); memeCount--; };
+
+        div.appendChild(img);
+
+        // Meme has audio - VERY LOUD
+        div.addEventListener('mouseenter', () => {
+            playBeep(600 + Math.random()*400, 1.0, 'sawtooth', 1.0); // MAX VOLUME
+        });
+
+        div.onclick = () => { div.remove(); memeCount--; };
+        document.body.appendChild(div);
+
+        setTimeout(() => {
+            if (div.parentNode) { div.remove(); memeCount--; }
+        }, 8000);
+    }
+
+    setInterval(() => {
+        if (Math.random() < 0.4) spawnMeme();
+    }, 4000);
+
+    // dissapearing cursor
+    function scheduleCursorHide() {
+        const delay = (Math.random() * 180 + 120) * 1000; // 120-300s
+        setTimeout(() => {
+            document.body.style.cursor = 'none';
+            document.querySelectorAll('*').forEach(el => el.style.cursor = 'none');
+            const hideDuration = (Math.random() * 10 + 10) * 1000; // 30-40s
+            setTimeout(() => {
+                document.body.style.cursor = '';
+                document.querySelectorAll('*').forEach(el => el.style.cursor = '');
+                scheduleCursorHide();
+            }, hideDuration);
+        }, delay);
+    }
+    scheduleCursorHide();
+
+    // random meme page redirect
+    const memePages = [
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "https://www.nyan.cat",
+        "https://www.zombo.com",
+        "https://theuselessweb.com",
+    ];
+
+    function scheduleRandomRedirect() {
+        const delay = (Math.random() * 120 + 60) * 1000;
+        setTimeout(() => {
+            if (Math.random() < 0.5) {
+                window.open(memePages[Math.floor(Math.random() * memePages.length)], '_blank');
+            }
+            scheduleRandomRedirect();
+        }, delay);
+    }
+    scheduleRandomRedirect();
+
+    // moving buttons
+    document.addEventListener('mousemove', (e) => {
+        document.querySelectorAll('.btn-swap').forEach(btn => {
+            const rect = btn.getBoundingClientRect();
+            const dx = e.clientX - (rect.left + rect.width / 2);
+            const dy = e.clientY - (rect.top + rect.height / 2);
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 200) {
+                let newLeft = parseFloat(btn.style.left) || 50;
+                let newTop  = parseFloat(btn.style.top)  || 200;
+                const angle = Math.atan2(dy, dx);
+                newLeft -= Math.cos(angle) * 150;
+                newTop  -= Math.sin(angle) * 150;
+                const maxX = window.innerWidth  - btn.offsetWidth  - 10;
+                const maxY = window.innerHeight - btn.offsetHeight - 10;
+                newLeft = Math.max(10, Math.min(newLeft, maxX));
+                newTop  = Math.max(10, Math.min(newTop,  maxY));
+                btn.style.left = newLeft + 'px';
+                btn.style.top  = newTop  + 'px';
+            }
+        });
+    });
+
+    // font chaos(create page)
+    const fonts = ['font-comic', 'font-impact', 'font-serif', 'font-courier', 'font-system'];
+    let fontInterval = null;
+
+    function startFontChaos() {
+        clearInterval(fontInterval);
+        fontInterval = setInterval(() => {
+            const page = document.getElementById('create-page');
+            if (!page.classList.contains('active-page')) return;
+            fonts.forEach(f => page.classList.remove(f));
+            page.classList.add(fonts[Math.floor(Math.random() * fonts.length)]);
+        }, 20000);
+    }
+
+    // ===== INSERT MODE (create page - typing replaces text) =====
+    // INSERT mode: each keystroke replaces next character
+    document.addEventListener('keydown', (e) => {
+        const createPage = document.getElementById('create-page');
+        if (!createPage.classList.contains('active-page')) return;
+        const el = document.activeElement;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+            el.setAttribute('data-insert', 'true');
+            // Native INSERT mode simulation
+            if (!el._insertEnabled) {
+                el._insertEnabled = true;
+                el.addEventListener('keypress', function(ke) {
+                    if (ke.ctrlKey || ke.metaKey) return;
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    if (start === end && start < this.value.length) {
+                        ke.preventDefault();
+                        this.value = this.value.substring(0, start) + ke.key + this.value.substring(start + 1);
+                        this.selectionStart = this.selectionEnd = start + 1;
+                    }
+                });
+            }
+        }
+    });
+
+    // ===== BAD TIP POPUPS (create page) =====
+    setInterval(() => {
+        const createPage = document.getElementById('create-page');
+        if (!createPage.classList.contains('active-page')) return;
+        if (Math.random() < 0.5) {
+            const tip = document.getElementById('bad-tip');
+            tip.textContent = '💡 ' + badTips[Math.floor(Math.random() * badTips.length)];
+            tip.style.left = Math.random() * (window.innerWidth - 250) + 'px';
+            tip.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+            tip.style.display = 'block';
+            setTimeout(() => { tip.style.display = 'none'; }, 3000);
+        }
+    }, 8000);
+
+    // ===== RANDOM INSULT POPUPS (browser-style) =====
+    setInterval(() => {
+        if (Math.random() < 0.25) {
+            const messages = [
+                "Vous naviguez très lentement. Vous êtes fatigué(e) ?",
+                "Ce site détecte un QI inférieur à la moyenne.",
+                "Êtes-vous sûr(e) de vouloir continuer ?",
+                "Avertissement: Votre façon de cliquer est suspecte.",
+                "Information: Personne ne lit vos réponses de toute façon.",
+            ];
+            const popup = document.getElementById('insult-popup');
+            popup.textContent = messages[Math.floor(Math.random() * messages.length)];
+            popup.style.left = Math.random() * (window.innerWidth - 300) + 'px';
+            popup.style.top = Math.random() * (window.innerHeight - 80) + 'px';
+            popup.style.display = 'block';
+            playBeep(300, 0.3, 'square', 0.3);
+            setTimeout(() => { popup.style.display = 'none'; }, 4000);
+        }
+    }, 15000);
+
+    // ===== GHOST LAYER (Click Blocker) =====
+    const ghostLayer = document.getElementById('ghost-layer');
+    ghostLayer.onclick = (e) => {
+        playWrongBuzzer();
+        if (Math.random() < 0.4) {
+            const urls = [
+                "https://www.amazon.fr/s?k=chaussettes+moches",
+                "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "https://www.nyan.cat"
+            ];
+            window.open(urls[Math.floor(Math.random() * urls.length)], '_blank');
+        }
+        // Hide temporarily
+        ghostLayer.style.display = 'none';
+        setTimeout(() => {
+            ghostLayer.style.display = 'block';
+        }, Math.random() * 15000 + 10000);
+    };
+
+    // init
+    window.addEventListener('load', () => {
+        showFakeLoader(() => {
+            generateQuestions();
+            startFontChaos();
+            setTimeout(spawnMeme, 5000);
+        });
+    });
+    let focusTimerStart = null;
+    let focusTimerInterval = null;
+
+    let focusTriggered = false;
+    document.addEventListener('mousemove', () => {
+        if (focusTriggered) return;
+        const menuPage = document.getElementById('menu-page');
+        if (!menuPage.classList.contains('active-page')) return;
+
+        focusTriggered = true;
+        focusTimerStart = Date.now();
+
+        setTimeout(() => {
+            const secretBtns = document.getElementById('secret-btns');
+            secretBtns.style.opacity = '1';
+            secretBtns.style.pointerEvents = 'auto';
+
+            focusTimerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - focusTimerStart) / 1000);
+                const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const s = (elapsed % 60).toString().padStart(2, '0');
+                const el = document.getElementById('focus-timer');
+                if (el) el.textContent = '⏱ ' + m + ':' + s;
+            }, 1000);
+        }, 5000);
+    });
+
+    function resetFocusBias() {
+        focusTriggered = false;
+        clearInterval(focusTimerInterval);
+        const secretBtns = document.getElementById('secret-btns');
+        secretBtns.style.opacity = '0';
+        secretBtns.style.pointerEvents = 'none';
+        const el = document.getElementById('focus-timer');
+        if (el) el.textContent = '⏱ 00:00';
+    }
+
+    // NEW ANNOYING STUFF:
+
+    // Rotate the screen randomly (with rare spins)
+    setInterval(() => {
+        const rand = Math.random();
+        if (rand < 0.05) {
+            // 5% chance: crazy spin with 67 meme
+            const rick = document.createElement('div');
+            rick.style.position = 'fixed';
+            rick.style.top = '0'; rick.style.left = '0';
+            rick.style.width = '100vw'; rick.style.height = '100vh';
+            rick.style.zIndex = '999999';
+            rick.style.background = 'url("https://media.tenor.com/sOua8BEwJeYAAAAM/bosnov-67.gif") center/contain no-repeat black';
+            document.body.appendChild(rick);
+
+            document.body.style.transition = 'transform 2s ease-in-out';
+            document.body.style.transform = `rotate(${Math.random() > 0.5 ? 1080 : -1080}deg)`;
+
+            try {
+                playSiren();
+                const utterance = new SpeechSynthesisUtterance("six seveeeeeeeen");
+                utterance.pitch = 1.5;
+                utterance.rate = 0.8;
+                window.speechSynthesis.speak(utterance);
+            } catch(e){}
+
+            setTimeout(() => {
+                document.body.style.transition = 'none';
+                document.body.style.transform = 'none';
+                if (rick.parentNode) rick.remove();
+                goToPage('menu-page');
+            }, 2000);
+        } else if(rand < 0.3) {
+            // 25% chance: harsh tilt
+            const deg = (Math.random() * 40) - 20;
+            document.body.style.transform = `rotate(${deg}deg)`;
+            document.body.style.transition = 'transform 0.1s';
+            setTimeout(() => {
+                document.body.style.transform = 'none';
+            }, 1000);
+        }
+    }, 4000);
+
+    // Buttons run away from mouse
+    document.addEventListener('mouseover', (e) => {
+        if(e.target.tagName === 'BUTTON' &&
+           Math.random() < 0.3 &&
+           !e.target.classList.contains('xp-close-btn') &&
+           !e.target.classList.contains('btn-swap') &&
+           !e.target.closest('#secret-btns')) {
+
+            e.target.style.position = 'absolute';
+            e.target.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+            e.target.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            try { playFart(); } catch(err){}
+        }
+    });
+
+    // Random blur
+    setInterval(() => {
+        document.body.style.filter = 'blur(3px)';
+        setTimeout(() => {
+            document.body.style.filter = 'none';
+        }, 800);
+    }, 15000);
+
+    // Fake error alerts
+    setInterval(() => {
+        if(Math.random() < 0.15) {
+            alert("CRITICAL ERROR: Mouse moved too fast. Please slow down.");
+        }
+    }, 45000);
+
+    // Marquee effect on all headers
+    document.querySelectorAll('h1, h2, h3').forEach(h => {
+        h.innerHTML = `<marquee scrollamount="${Math.random() * 15 + 5}">${h.innerHTML}</marquee>`;
+    });
+
+    </script>
+</body>
+</html>
