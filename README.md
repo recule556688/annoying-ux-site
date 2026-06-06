@@ -118,9 +118,4 @@ The workflow will:
 2. Build and push `ghcr.io/<owner>/<repo>:latest`
 3. SSH to your server, `docker compose pull`, and restart the container
 
-### Local vs production compose files
-
-| File | Use |
-|------|-----|
-| `docker-compose.yml` | Local dev — builds from source |
-| `docker-compose.prod.yml` | Server / CI — pulls pre-built image from GHCR |
+Locally, `docker compose up -d --build` builds from source. On the server, CI sets `IMAGE=ghcr.io/<owner>/<repo>:latest` so compose pulls the pre-built image instead.

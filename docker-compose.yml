@@ -1,6 +1,8 @@
 services:
   annoying-ux-site:
+    image: ${IMAGE:-annoying-ux-site:local}
     build: .
+    pull_policy: build
     container_name: annoying-ux-site
     restart: unless-stopped
     ports:
